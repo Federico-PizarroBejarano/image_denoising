@@ -1,0 +1,4 @@
+imageio
+cvxpy
+matplotlib
+Mosek ~= 9.3.14
