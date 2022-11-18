@@ -1,5 +1,8 @@
+'''Main file for running experiments.'''
+
 import time
 import pickle
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -11,14 +14,21 @@ from utilities.utils import read_image, add_noise, PSNR
 
 
 def main(plot=False):
+    '''Runs the various filters on the provided images with varying noise levels
+       and saves the results.
+
+    Args:
+        plot (bool): Whether to plot the noisy and cleaned images.
+    '''
+
     np.random.seed(0)
-    PSNR_results = {'quad':{}, 'TV':{}, 'nlm':{}, 'wnnm':{}}
-    time_results = {'quad':{}, 'TV':{}, 'nlm':{}, 'wnnm':{}}
+    PSNR_results = {'quad': {}, 'TV': {}, 'nlm': {}, 'wnnm': {}}
+    time_results = {'quad': {}, 'TV': {}, 'nlm': {}, 'wnnm': {}}
 
     for im_name in ['clock', 'boat', 'aerial', 'bridge', 'couple']:
-        for key in PSNR_results.keys():
-            PSNR_results[key][im_name] = []
-            time_results[key][im_name] = []
+        for filter_result in PSNR_results.item():
+            filter_result[im_name] = []
+            filter_result[im_name] = []
 
         for var in [0.01, 0.025, 0.05]:
             im = read_image(im_name)
