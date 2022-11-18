@@ -25,7 +25,7 @@ def non_local_wnnm_filter(im, patch_size, search_dist, h):
         print(f'Completed {row}/{n} iterations.')
         for col in range(padding, m - padding):
             curr_patch = padded_im[row - padding:row + padding + 1, col - padding:col + padding + 1]
-            similar_patches = _get_similar_patches(padded_im, patch_size, search_dist, row, col, tol=1.5)
+            similar_patches = _get_similar_patches(padded_im, patch_size, search_dist, row, col)
             clean_patches = _compute_wnnm(similar_patches, var=0.03)
             clean_patch = _collapse_stacked_patches(curr_patch, clean_patches, h)
             clean_im[row - padding, col - padding] = clean_patch[padding, padding]
@@ -33,7 +33,7 @@ def non_local_wnnm_filter(im, patch_size, search_dist, h):
     return clean_im
 
 
-def _get_similar_patches(padded_im, patch_size, search_dist, row, col, tol):
+def _get_similar_patches(padded_im, patch_size, search_dist, row, col):
     '''Takes in a patch and returns all similar patches.
 
     Args:
@@ -42,7 +42,6 @@ def _get_similar_patches(padded_im, patch_size, search_dist, row, col, tol):
         search_dist (int): The distance from the center pixel of a patch to look.
         row (int): The row of the pixel being currently considered.
         col (int): The col of the pixel being currently considered.
-        tol (float): How small the distance between patches needs to be to be considered "similar".
 
     Returns:
         similar_patches (np.ndarray): The vertically stacked similar patches.
@@ -52,7 +51,7 @@ def _get_similar_patches(padded_im, patch_size, search_dist, row, col, tol):
     n, m = padded_im.shape[0] - padding, padded_im.shape[1] - padding
     curr_patch = padded_im[row - padding:row + padding + 1, col - padding:col + padding + 1]
 
-    similar_patches = curr_patch
+    all_patches = [(0, curr_patch)]
 
     for s_row in range(row - search_dist, row + search_dist + 1):
         if s_row - padding < 0:
@@ -68,10 +67,10 @@ def _get_similar_patches(padded_im, patch_size, search_dist, row, col, tol):
 
             search_patch = padded_im[s_row - padding:s_row + padding + 1, s_col - padding:s_col + padding + 1]
             euclideanDistance = np.sqrt(np.sum(np.square(curr_patch - search_patch)))
+            all_patches.append((euclideanDistance, search_patch))
 
-            if euclideanDistance <= tol:
-                similar_patches = np.vstack((similar_patches, search_patch))
-
+    all_patches.sort()
+    similar_patches = np.vstack([item[1] for item in all_patches[0:10]])
     return similar_patches
 
 

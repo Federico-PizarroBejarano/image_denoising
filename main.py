@@ -26,9 +26,9 @@ def main(plot=False):
     time_results = {'quad': {}, 'TV': {}, 'nlm': {}, 'wnnm': {}}
 
     for im_name in ['clock', 'boat', 'aerial', 'bridge', 'couple']:
-        for filter_result in PSNR_results.item():
-            filter_result[im_name] = []
-            filter_result[im_name] = []
+        for key in PSNR_results.keys():
+            PSNR_results[key][im_name] = []
+            time_results[key][im_name] = []
 
         for var in [0.01, 0.025, 0.05]:
             im = read_image(im_name)
