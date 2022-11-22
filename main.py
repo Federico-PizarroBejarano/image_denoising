@@ -8,12 +8,13 @@ import matplotlib.pyplot as plt
 
 from filters.quadratic_filter import quadratic_filter
 from filters.TV_filter import TV_filter
+from filters.TV_filter_pd import TV_filter_pd
 from filters.non_local_means_filter import non_local_means_filter
 from filters.non_local_wnnm_filter import non_local_wnnm_filter
 from utilities.utils import read_image, add_noise, PSNR, create_results_directory, normalize_image
 
 
-def main(plot=False, savefigs=False):
+def main(plot=False, savefigs=True):
     '''Runs the various filters on the provided images with varying noise levels
        and saves the results.
 
@@ -48,7 +49,8 @@ def main(plot=False, savefigs=False):
             quad_time = time.time()
             quad_im = normalize_image(quad_im)
 
-            TV_im = TV_filter(noisy_im, 0.5)
+            # TV_im = TV_filter(noisy_im, 1.5)
+            TV_im = TV_filter_pd(noisy_im, 6)
             TV_time = time.time()
             TV_im = normalize_image(TV_im)
 
@@ -56,9 +58,17 @@ def main(plot=False, savefigs=False):
             nlm_time = time.time()
             nlm_im = normalize_image(nlm_im)
 
-            wnnm_im = non_local_wnnm_filter(noisy_im, 7, 10, 0.1)
+            x = noisy_im
+            y = noisy_im
+            delta = 0.3
+            for _ in range(1):
+                y = x + delta*(noisy_im - y)
+                x = non_local_wnnm_filter(y, 7, 10, var)
+                x = normalize_image(x)
+
+            wnnm_im = x
+
             wnnm_time = time.time()
-            wnnm_im = normalize_image(wnnm_im)
 
             PSNR_results['quad'][im_name].append(PSNR(original_im=im, cleaned_im=quad_im))
             PSNR_results['TV'][im_name].append(PSNR(original_im=im, cleaned_im=TV_im))
