@@ -39,6 +39,7 @@ def add_noise(im, var=0.01):
     noisy_im = np.clip(noisy_im, 0.0, 1.0)
     return noisy_im
 
+
 def normalize_image(im):
     '''Normalizes an image to have pixels only from 0-1
 
@@ -52,6 +53,7 @@ def normalize_image(im):
     min_pixel = np.min(im)
     normalized_im = (im - min_pixel) / max_pixel
     return normalized_im
+
 
 def PSNR(original_im, cleaned_im):
     '''Calculates the Peak Signal-to-Noise Ratio (PSNR) between two images.
@@ -69,6 +71,7 @@ def PSNR(original_im, cleaned_im):
     max_pixel = 1.0
     psnr = 20 * log10(max_pixel / sqrt(mse))
     return psnr
+
 
 def create_results_directory(images, variances):
     '''Creates the necessary results directory structure. '''
