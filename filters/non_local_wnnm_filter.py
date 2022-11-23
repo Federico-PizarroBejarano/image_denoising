@@ -23,7 +23,7 @@ def non_local_wnnm_filter(im, patch_size, search_dist, var):
     count_padded_im = np.zeros(padded_im.shape)
 
     for row in range(pad, n - pad):
-        print(f'Completed {row}/{n} iterations.')
+        print(f'Starting iteration {row-pad}/{n-pad*2}.')
         for col in range(pad, m - pad):
             curr_patch = padded_im[row - pad:row + pad + 1, col - pad:col + pad + 1]
             similar_patches, patch_locations = _get_similar_patches(padded_im, patch_size, search_dist, row, col)
