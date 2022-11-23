@@ -14,10 +14,9 @@ def TV_filter(im, lamb=1):
     '''
 
     X = cp.Variable(im.shape)
-    shift = list(range(1, im.shape[0])) + [im.shape[0] - 1]
-    dXdx = X[:, shift] - X
-    dXdy = X[shift, :] - X
-    objective = cp.Minimize(cp.norm(X - im, 'fro') + lamb * cp.norm(dXdx, 1) + lamb * cp.norm(dXdy, 1))
+    dXdx = cp.diff(X, k=1, axis=0)
+    dXdy = cp.diff(X, k=1, axis=1)
+    objective = cp.Minimize(cp.sum_squares(X - im) + lamb * cp.pnorm(dXdx, 1) + lamb * cp.pnorm(dXdy, 1))
 
     prob = cp.Problem(objective)
     try:

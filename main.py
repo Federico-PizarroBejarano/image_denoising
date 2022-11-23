@@ -45,11 +45,11 @@ def main(plot=False, savefigs=True):
             noisy_im = add_noise(im, var)
             start_time = time.time()
 
-            quad_im = quadratic_filter(noisy_im, 0.75)
+            quad_im = quadratic_filter(noisy_im, 5)
             quad_time = time.time()
             quad_im = normalize_image(quad_im)
 
-            # TV_im = TV_filter(noisy_im, 1.5)
+            # TV_im = TV_filter(noisy_im, 0.3)
             TV_im = TV_filter_pd(noisy_im, 6)
             TV_time = time.time()
             TV_im = normalize_image(TV_im)
