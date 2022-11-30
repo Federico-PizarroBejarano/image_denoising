@@ -23,20 +23,34 @@ def read_image(filename):
     return im
 
 
-def add_noise(im, var=0.01):
+def add_gaussian_noise(im, mean=0, var=0.01):
     '''Adds Gaussian noise to an image with the given variance.
 
     Args:
+        mean (float): The mean of the Gaussian noise that is added.
         var (float): The variance of the Gaussian noise that is added.
 
     Returns:
         noisy_im (np.ndarray): The noisy image.
     '''
-    mean = 0
     sigma = var**0.5
     gaussian_noise = np.random.normal(mean, sigma, im.shape)
     noisy_im = im + gaussian_noise
-    noisy_im = np.clip(noisy_im, 0.0, 1.0)
+    noisy_im = normalize_image(noisy_im)
+    return noisy_im
+
+
+def add_poisson_noise(im, photons=100):
+    '''Adds Poisson noise to an image with the given variance.
+
+    Args:
+        photons (float): The number of photons available per pixel.
+
+    Returns:
+        noisy_im (np.ndarray): The noisy image.
+    '''
+    noisy_im = np.random.poisson(im * photons) / photons
+    noisy_im = normalize_image(noisy_im)
     return noisy_im
 
 
@@ -73,9 +87,15 @@ def PSNR(original_im, cleaned_im):
     return psnr
 
 
-def create_results_directory(images, variances):
-    '''Creates the necessary results directory structure. '''
+def create_results_directory(noise_type, images, hyperparameters):
+    '''Creates the necessary results directory structure.
+
+    Args:
+        noise_type (str): The type of noise, either 'gaussian' or 'poisson'.
+        images (list): The list of image names, e.g. 'clock'.
+        hyperparameters (list): The list of hyperparameters for that noise being tested.
+    '''
     for image in images:
-        for var in variances:
+        for var in hyperparameters:
             str_var = str(var).replace('.', '_')
-            os.makedirs(f'./results/{image}/var_{str_var}/', exist_ok=True)
+            os.makedirs(f'./results/{noise_type}/{image}/var_{str_var}/', exist_ok=True)

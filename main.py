@@ -11,14 +11,15 @@ from filters.TV_filter import TV_filter
 from filters.TV_filter_pd import TV_filter_pd
 from filters.non_local_means_filter import non_local_means_filter
 from filters.non_local_wnnm_filter import non_local_wnnm_filter
-from utilities.utils import read_image, add_noise, PSNR, create_results_directory, normalize_image
+from utilities.utils import read_image, add_gaussian_noise, add_poisson_noise, PSNR, create_results_directory, normalize_image
 
 
-def main(plot=False, savefigs=True):
+def main(noise_type='gaussian', plot=False, savefigs=True):
     '''Runs the various filters on the provided images with varying noise levels
        and saves the results.
 
     Args:
+        noise_type (str): The type of noise, either 'gaussian' or 'poisson'.
         plot (bool): Whether to plot the noisy and cleaned images.
         savefigs (bool): Whether to save the generated images.
     '''
@@ -29,20 +30,30 @@ def main(plot=False, savefigs=True):
     time_results = {'quad': {}, 'TV': {}, 'nlm': {}, 'wnnm': {}}
 
     images = ['clock', 'boat', 'aerial', 'bridge', 'couple']
-    variances = [0.01, 0.025, 0.05]
 
-    create_results_directory(images, variances)
+    if noise_type == 'gaussian':
+        hyperparameters = [0.01, 0.025, 0.05]
+    elif noise_type == 'poisson':
+        hyperparameters = [50, 20, 10]
+
+    create_results_directory(noise_type, images, hyperparameters)
 
     for im_name in images:
         for key in PSNR_results.keys():
             PSNR_results[key][im_name] = []
             time_results[key][im_name] = []
 
-        for var in variances:
-            str_var = str(var).replace('.', '_')
+        for param in hyperparameters:
+            str_var = str(param).replace('.', '_')
 
             im = read_image(im_name)
-            noisy_im = add_noise(im, var)
+            if noise_type == 'gaussian':
+                noisy_im = add_gaussian_noise(im, mean=0, var=param)
+                variance = param
+            elif noise_type == 'poisson':
+                noisy_im = add_poisson_noise(im, photons=param)
+                variance = 0.5/param
+
             start_time = time.time()
 
             quad_im = quadratic_filter(noisy_im, 5)
@@ -63,7 +74,7 @@ def main(plot=False, savefigs=True):
             delta = 0.3
             for _ in range(1):
                 y = x + delta*(noisy_im - y)
-                x = non_local_wnnm_filter(y, 7, 10, var)
+                x = non_local_wnnm_filter(y, 7, 10, variance)
                 x = normalize_image(x)
 
             wnnm_im = x
@@ -106,20 +117,20 @@ def main(plot=False, savefigs=True):
                 ax_wnnm.set_title(f'Weighted Nuclear Norm Minimization Image, PSNR={round(PSNR(original_im=im, cleaned_im=wnnm_im), 2)}')
 
                 if savefigs is True:
-                    fig_noisy.savefig(f'./results/{im_name}/var_{str_var}/noisy.png')
-                    fig_quad.savefig(f'./results/{im_name}/var_{str_var}/quad.png')
-                    fig_tv.savefig(f'./results/{im_name}/var_{str_var}/tv.png')
-                    fig_nlm.savefig(f'./results/{im_name}/var_{str_var}/nlm.png')
-                    fig_wnnm.savefig(f'./results/{im_name}/var_{str_var}/wnnm.png')
+                    fig_noisy.savefig(f'./results/{noise_type}/{im_name}/var_{str_var}/noisy.png')
+                    fig_quad.savefig(f'./results/{noise_type}/{im_name}/var_{str_var}/quad.png')
+                    fig_tv.savefig(f'./results/{noise_type}/{im_name}/var_{str_var}/tv.png')
+                    fig_nlm.savefig(f'./results/{noise_type}/{im_name}/var_{str_var}/nlm.png')
+                    fig_wnnm.savefig(f'./results/{noise_type}/{im_name}/var_{str_var}/wnnm.png')
 
                 if plot is True:
                     plt.show()
 
     print(PSNR_results)
     print(time_results)
-    with open('./results/PSNR_results.pkl', 'wb') as f:
+    with open(f'./results/{noise_type}/PSNR_results.pkl', 'wb') as f:
         pickle.dump(PSNR_results, f)
-    with open('./results/time_results.pkl', 'wb') as f:
+    with open(f'./results/{noise_type}/time_results.pkl', 'wb') as f:
         pickle.dump(time_results, f)
 
 
